@@ -16,6 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase';
+import { useAuth } from '@/hooks/useAuth';
 
 const skillSchema = z.object({
   name: z.string().min(1, "Skill name is required."),
@@ -31,6 +32,7 @@ type SkillsFormValues = z.infer<typeof skillsFormSchema>;
 export function SkillsForm({ initialSkills }: { initialSkills: Skill[] }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const form = useForm<SkillsFormValues>({
     resolver: zodResolver(skillsFormSchema),
@@ -44,6 +46,18 @@ export function SkillsForm({ initialSkills }: { initialSkills: Skill[] }) {
 
   const onSubmit = async (data: SkillsFormValues) => {
     setIsSubmitting(true);
+
+    console.log("Attempting to save skills. Current user:", user);
+    if (!user) {
+      console.error("No user authenticated. Aborting save.");
+      toast({
+        title: 'Authentication Error',
+        description: "You are not logged in. Please log in and try again.",
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
+    }
     
     try {
       const skillsRef = doc(firestore, "skills", "main");
@@ -64,11 +78,11 @@ export function SkillsForm({ initialSkills }: { initialSkills: Skill[] }) {
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error updating skills:", error);
         toast({
             title: 'Error',
-            description: "Failed to save skills. Please check permissions and try again.",
+            description: error.message || "Failed to save skills. Please check permissions and try again.",
             variant: 'destructive',
         });
     } finally {

@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { hexToHsl } from '@/lib/utils';
 import { doc, setDoc } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase';
+import { useAuth } from '@/hooks/useAuth';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,6 +52,7 @@ function ColorInput({ field, label }: { field: any; label: string }) {
 export function ThemeForm({ theme }: { theme: Theme }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const form = useForm<ThemeFormValues>({
     resolver: zodResolver(themeSchema),
@@ -59,6 +61,18 @@ export function ThemeForm({ theme }: { theme: Theme }) {
 
   const onSubmit = async (data: ThemeFormValues) => {
     setIsSubmitting(true);
+
+    console.log("Attempting to save theme. Current user:", user);
+    if (!user) {
+      console.error("No user authenticated. Aborting save.");
+      toast({
+        title: 'Authentication Error',
+        description: "You are not logged in. Please log in and try again.",
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
+    }
     
     try {
       // 1. Write to database from the client
@@ -90,11 +104,11 @@ export function ThemeForm({ theme }: { theme: Theme }) {
           variant: 'destructive',
         });
       }
-    } catch(error) {
+    } catch(error: any) {
       console.error("Error updating theme:", error);
       toast({
           title: 'Error',
-          description: "Failed to save theme. Check permissions and try again.",
+          description: error.message || "Failed to save theme. Check permissions and try again.",
           variant: 'destructive',
       });
     }

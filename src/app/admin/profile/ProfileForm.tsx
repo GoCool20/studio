@@ -10,6 +10,7 @@ import type { Profile } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { doc, setDoc } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase';
+import { useAuth } from '@/hooks/useAuth';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,6 +34,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 export function ProfileForm({ profile }: { profile: Profile }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: profile,
@@ -41,6 +43,18 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   const onSubmit = async (data: ProfileFormValues) => {
     setIsSubmitting(true);
     
+    console.log("Attempting to save profile. Current user:", user);
+    if (!user) {
+      console.error("No user authenticated. Aborting save.");
+      toast({
+        title: 'Authentication Error',
+        description: "You are not logged in. Please log in and try again.",
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const profileRef = doc(firestore, "profile", "main");
       await setDoc(profileRef, data, { merge: true });
@@ -60,11 +74,11 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           variant: 'destructive',
         });
       }
-    } catch(error) {
+    } catch(error: any) {
       console.error("Error updating profile:", error);
       toast({
         title: 'Error',
-        description: "Failed to save profile. Check permissions and try again.",
+        description: error.message || "Failed to save profile. Check permissions and try again.",
         variant: 'destructive',
       });
     } finally {

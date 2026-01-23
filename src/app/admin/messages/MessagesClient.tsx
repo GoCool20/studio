@@ -8,6 +8,7 @@ import type { Message } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Accordion,
   AccordionContent,
@@ -34,17 +35,23 @@ export function MessagesClient({ messages }: { messages: Message[] }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const { user } = useAuth();
 
   const handleToggleRead = async (id: string, read: boolean) => {
+    console.log("Attempting to toggle read status. Current user:", user);
+    if (!user) {
+      toast({ title: 'Authentication Error', description: 'Please log in to perform this action.', variant: 'destructive' });
+      return;
+    }
     try {
       const messageRef = doc(firestore, 'messages', id);
       await updateDoc(messageRef, { read: !read });
       startTransition(() => {
         revalidateMessages();
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error toggling message read status:', error);
-      toast({ title: 'Error', description: 'Failed to update message.', variant: 'destructive' });
+      toast({ title: 'Error', description: error.message || 'Failed to update message.', variant: 'destructive' });
     }
   };
 
@@ -55,15 +62,23 @@ export function MessagesClient({ messages }: { messages: Message[] }) {
   
   const handleDelete = async () => {
     if (!messageToDelete) return;
+
+    console.log("Attempting to delete message. Current user:", user);
+    if (!user) {
+      toast({ title: 'Authentication Error', description: 'Please log in to perform this action.', variant: 'destructive' });
+      setShowDeleteDialog(false);
+      return;
+    }
+
     try {
       await deleteDoc(doc(firestore, "messages", messageToDelete));
       startTransition(() => {
         revalidateMessages();
       });
       toast({ title: 'Success', description: 'Message deleted.' });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting message:", error);
-      toast({ title: 'Error', description: 'Failed to delete message.', variant: 'destructive' });
+      toast({ title: 'Error', description: error.message || 'Failed to delete message.', variant: 'destructive' });
     } finally {
       setShowDeleteDialog(false);
       setMessageToDelete(null);

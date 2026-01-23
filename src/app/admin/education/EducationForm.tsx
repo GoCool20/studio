@@ -15,6 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase';
+import { useAuth } from '@/hooks/useAuth';
 
 const educationEntrySchema = z.object({
   id: z.string(),
@@ -37,6 +38,7 @@ type EducationFormProps = {
 export function EducationForm({ initialData }: EducationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const form = useForm<EducationFormValues>({
     resolver: zodResolver(educationFormSchema),
@@ -52,6 +54,18 @@ export function EducationForm({ initialData }: EducationFormProps) {
 
   const onSubmit = async (data: EducationFormValues) => {
     setIsSubmitting(true);
+
+    console.log("Attempting to save education details. Current user:", user);
+    if (!user) {
+      console.error("No user authenticated. Aborting save.");
+      toast({
+        title: 'Authentication Error',
+        description: "You are not logged in. Please log in and try again.",
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
+    }
     
     try {
       const educationRef = doc(firestore, "education", "main");
@@ -72,11 +86,11 @@ export function EducationForm({ initialData }: EducationFormProps) {
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating education:", error);
       toast({
         title: 'Error',
-        description: 'Failed to save education details. Please check your permissions and try again.',
+        description: error.message || 'Failed to save education details. Please check your permissions and try again.',
         variant: 'destructive',
       });
     } finally {

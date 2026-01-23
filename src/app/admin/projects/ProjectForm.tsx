@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
 import { firestore } from '@/lib/firebase';
 import { revalidateAndRedirectProjects } from '@/actions/projects';
+import { useAuth } from '@/hooks/useAuth';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,6 +46,7 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
@@ -56,6 +58,18 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
 
   const onSubmit = async (data: ProjectFormValues) => {
     setIsSubmitting(true);
+
+    console.log("Attempting to save project. Current user:", user);
+    if (!user) {
+      console.error("No user authenticated. Aborting save.");
+      toast({
+        title: 'Authentication Error',
+        description: "You are not logged in. Please log in and try again.",
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
+    }
     
     try {
       if (initialData?.id) {
@@ -70,11 +84,11 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
       // Revalidate and redirect
       await revalidateAndRedirectProjects();
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving project:", error);
       toast({
         title: 'Error',
-        description: 'Failed to save project. Please check permissions and try again.',
+        description: error.message || 'Failed to save project. Please check permissions and try again.',
         variant: 'destructive',
       });
       setIsSubmitting(false);
