@@ -15,15 +15,15 @@ async function HeroSection() {
   return (
     <section className="w-full py-24 md:py-32 lg:py-40">
       <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 md:grid-cols-2 md:px-8">
-        <div className="flex flex-col items-start gap-6">
+        <div className="order-2 flex flex-col items-center gap-6 text-center md:order-1 md:items-start md:text-left">
           <h1 className="text-4xl font-bold md:text-5xl lg:text-6xl">
             {profile.name}
           </h1>
           <p className="text-2xl font-medium text-primary">{profile.title}</p>
-          <p className="max-w-xl text-lg text-muted-foreground leading-relaxed">
+          <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
             {profile.bio}
           </p>
-          <div className="mt-6 flex flex-wrap gap-4">
+          <div className="mt-6 flex flex-wrap justify-center gap-4 md:justify-start">
             <Button asChild size="lg">
               <Link href="/projects">
                 View Projects <ArrowRight />
@@ -36,7 +36,7 @@ async function HeroSection() {
             </Button>
           </div>
         </div>
-        <div className="relative mx-auto h-80 w-80 overflow-hidden rounded-full shadow-soft-lg md:h-96 md:w-96">
+        <div className="order-1 mx-auto h-80 w-80 overflow-hidden rounded-full shadow-soft-lg md:order-2 md:h-96 md:w-96 relative">
           {profileImage && (
             <Image
               src={profile.avatarUrl || profileImage.imageUrl}
