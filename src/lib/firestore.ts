@@ -4,12 +4,12 @@ import type { Profile, Project, Skill, Education, Theme, DashboardStats, Message
 import { unstable_noStore as noStore } from 'next/cache';
 
 const defaultTheme: Theme = {
-  primaryColor: "#4285F4",
-  backgroundColor: "#050E1F",
-  surfaceColor: "#0E1A33",
-  textPrimaryColor: "#FAFBFC",
+  primaryColor: "#4F46E5",
+  backgroundColor: "#0B1020",
+  surfaceColor: "#121A33",
+  textPrimaryColor: "#E6E8F2",
   useGradientBorder: false,
-  gradientStartColor: "#4285F4",
+  gradientStartColor: "#4F46E5",
   gradientEndColor: "#9333ea",
 };
 

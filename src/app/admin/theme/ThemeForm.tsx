@@ -122,9 +122,9 @@ export function ThemeForm({ theme }: { theme: Theme }) {
           description: error.message || "Failed to save theme. Check permissions and try again.",
           variant: 'destructive',
       });
+    } finally {
+        setIsSubmitting(false);
     }
-    
-    setIsSubmitting(false);
   };
 
   return (
