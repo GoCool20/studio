@@ -49,8 +49,12 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     },
   });
 
+  const resumeRef = form.register("resumeUrl");
+  const avatarRef = form.register("avatarUrl");
+
   const onSubmit = async (data: ProfileFormValues) => {
     setIsSubmitting(true);
+    console.log("Submission started. User:", user ? user.uid : "No user");
     
     if (!user) {
       toast({
@@ -67,16 +71,32 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       if (data.resumeUrl && data.resumeUrl.length > 0) {
         const file = data.resumeUrl[0] as File;
         const storageRef = ref(storage, `resumes/${user.uid}_${file.name}`);
-        await uploadBytes(storageRef, file);
-        resumeUrl = await getDownloadURL(storageRef);
+        try {
+            console.log("Attempting to upload resume...");
+            await uploadBytes(storageRef, file);
+            console.log("Resume upload successful. Getting download URL...");
+            resumeUrl = await getDownloadURL(storageRef);
+            console.log("Resume download URL obtained:", resumeUrl);
+        } catch (uploadError) {
+            console.error("Firebase Storage upload error (resume):", uploadError);
+            throw new Error("Failed to upload resume. Please check storage permissions in your Firebase project.");
+        }
       }
 
       let avatarUrl = profile.avatarUrl;
       if (data.avatarUrl && data.avatarUrl.length > 0) {
         const file = data.avatarUrl[0] as File;
         const storageRef = ref(storage, `avatars/${user.uid}_${file.name}`);
-        await uploadBytes(storageRef, file);
-        avatarUrl = await getDownloadURL(storageRef);
+        try {
+            console.log("Attempting to upload avatar...");
+            await uploadBytes(storageRef, file);
+            console.log("Avatar upload successful. Getting download URL...");
+            avatarUrl = await getDownloadURL(storageRef);
+            console.log("Avatar download URL obtained:", avatarUrl);
+        } catch (uploadError) {
+            console.error("Firebase Storage upload error (avatar):", uploadError);
+            throw new Error("Failed to upload avatar. Please check storage permissions in your Firebase project.");
+        }
       }
 
       const dataToSave = {
@@ -89,18 +109,20 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         avatarUrl,
       };
 
+      console.log("Attempting to save profile data to Firestore...");
       const profileRef = doc(firestore, "profile", "main");
       await setDoc(profileRef, dataToSave, { merge: true });
-
+      console.log("Profile data saved to Firestore successfully.");
+      
+      console.log("Revalidating paths via server action...");
       const result = await updateProfile(dataToSave);
+      console.log("Revalidation result:", result);
 
       if (result.success) {
         toast({
           title: 'Success!',
           description: result.message,
         });
-        // The page will be revalidated, so we don't need to reset the form with new values
-        // as the component will re-render with the updated 'profile' prop.
       } else {
         toast({
           title: 'Error during revalidation',
@@ -109,13 +131,14 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         });
       }
     } catch(error: any) {
-      console.error("Error updating profile:", error);
+      console.error("Error in onSubmit profile form:", error);
       toast({
         title: 'Error',
-        description: error.message || "Failed to save profile. Check permissions and try again.",
+        description: error.message || "An unexpected error occurred. Please check the console for details.",
         variant: 'destructive',
       });
     } finally {
+      console.log("Finished submission process.");
       setIsSubmitting(false);
     }
   };
@@ -197,15 +220,14 @@ export function ProfileForm({ profile }: { profile: Profile }) {
              <FormField
               control={form.control}
               name="resumeUrl"
-              render={({ field: { onChange, value, ...fieldProps } }) => (
+              render={() => (
                 <FormItem>
                   <FormLabel>Resume</FormLabel>
                   <FormControl>
                     <Input 
                       type="file" 
                       accept=".pdf,.doc,.docx"
-                      onChange={(e) => onChange(e.target.files)} 
-                      {...fieldProps}
+                      {...resumeRef}
                     />
                   </FormControl>
                    {profile.resumeUrl && (
@@ -220,15 +242,14 @@ export function ProfileForm({ profile }: { profile: Profile }) {
              <FormField
               control={form.control}
               name="avatarUrl"
-              render={({ field: { onChange, value, ...fieldProps } }) => (
+              render={() => (
                 <FormItem>
                   <FormLabel>Avatar</FormLabel>
                    <FormControl>
                     <Input 
                       type="file" 
                       accept="image/*"
-                      onChange={(e) => onChange(e.target.files)}
-                      {...fieldProps}
+                      {...avatarRef}
                     />
                   </FormControl>
                   {profile.avatarUrl && (
