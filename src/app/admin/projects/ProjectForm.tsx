@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -32,6 +32,10 @@ const projectSchema = z.object({
   githubUrl: z.string().url("Invalid GitHub URL").optional().or(z.literal('')),
   liveDemoUrl: z.string().url("Invalid live demo URL").optional().or(z.literal('')),
   imageUrl: z.string().url("Invalid image URL").optional().or(z.literal('')),
+  orderIndex: z.preprocess(
+    (val) => (String(val).trim() === '' ? 0 : parseInt(String(val), 10)),
+    z.number().int().nonnegative("Order index must be a non-negative number.")
+  ),
   featured: z.boolean(),
 });
 
@@ -58,6 +62,7 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
       liveDemoUrl: initialData?.liveDemoUrl || '',
       imageUrl: initialData?.imageUrl || '',
       featured: initialData?.featured || false,
+      orderIndex: initialData?.orderIndex ?? 0,
     },
   });
 
@@ -76,14 +81,7 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
     
     try {
       const dataToSave = {
-        title: data.title,
-        shortDescription: data.shortDescription,
-        detailedDescription: data.detailedDescription,
-        techStack: data.techStack,
-        githubUrl: data.githubUrl,
-        liveDemoUrl: data.liveDemoUrl,
-        featured: data.featured,
-        imageUrl: data.imageUrl,
+        ...data
       };
 
       if (initialData?.id) {
@@ -198,6 +196,22 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
                   <FormControl>
                     <Input {...field} value={field.value ?? ''} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="orderIndex"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Order Index</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Used for sorting. A lower number appears first.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, MoreHorizontal, PlusCircle, Trash2, XCircle } from 'lucide-react';
+import { CheckCircle2, MoreHorizontal, PlusCircle, XCircle } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -87,6 +87,7 @@ export function ProjectsClient({ projects }: { projects: Project[] }) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Order</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Featured</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -95,6 +96,7 @@ export function ProjectsClient({ projects }: { projects: Project[] }) {
           <TableBody>
             {projects.map((project) => (
               <TableRow key={project.id}>
+                <TableCell>{project.orderIndex}</TableCell>
                 <TableCell className="font-medium">{project.title}</TableCell>
                 <TableCell>
                   {project.featured ? <CheckCircle2 className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-muted-foreground" />}

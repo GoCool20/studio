@@ -8,7 +8,7 @@ const defaultTheme: Theme = {
   backgroundColor: "#0B1020",
   surfaceColor: "#121A33",
   textPrimaryColor: "#E6E8F2",
-  useGradientBorder: false,
+  useGradientBorder: true,
   gradientStartColor: "#4F46E5",
   gradientEndColor: "#9333ea",
 };
@@ -24,8 +24,6 @@ export async function getTheme(): Promise<Theme> {
       return {
         ...defaultTheme,
         ...data,
-        // Ensure nested objects/arrays have defaults
-        socialLinks: data.socialLinks || defaultTheme.socialLinks,
       } as Theme;
     }
     return defaultTheme;
@@ -68,12 +66,15 @@ export async function getProjects(options: { featured?: boolean } = {}): Promise
   noStore();
   try {
     const projectsRef = collection(firestore, "projects");
-    let q;
+    
+    const queryConstraints = [];
     if (options.featured) {
-      q = query(projectsRef, where("featured", "==", true));
-    } else {
-      q = query(projectsRef);
+      queryConstraints.push(where("featured", "==", true));
     }
+    queryConstraints.push(orderBy("orderIndex", "asc"));
+    
+    const q = query(projectsRef, ...queryConstraints);
+
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
   } catch (error) {

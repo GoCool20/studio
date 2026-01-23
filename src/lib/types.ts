@@ -30,6 +30,7 @@ export type Project = {
   liveDemoUrl: string;
   featured: boolean;
   imageUrl: string;
+  orderIndex: number;
 };
 
 export type Skill = {
