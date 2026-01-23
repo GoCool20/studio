@@ -15,14 +15,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Loader2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 const themeSchema = z.object({
   primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Invalid hex color"),
   backgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Invalid hex color"),
   surfaceColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Invalid hex color"),
   textPrimaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Invalid hex color"),
+  useGradientBorder: z.boolean(),
+  gradientStartColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Invalid hex color"),
+  gradientEndColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Invalid hex color"),
 });
 
 type ThemeFormValues = z.infer<typeof themeSchema>;
@@ -58,6 +62,8 @@ export function ThemeForm({ theme }: { theme: Theme }) {
     defaultValues: theme,
   });
 
+  const useGradient = form.watch('useGradientBorder');
+
   const onSubmit = async (data: ThemeFormValues) => {
     setIsSubmitting(true);
 
@@ -72,11 +78,9 @@ export function ThemeForm({ theme }: { theme: Theme }) {
     }
     
     try {
-      // 1. Write to database from the client
       const themeRef = doc(firestore, "theme", "main");
       await setDoc(themeRef, data);
 
-      // 2. Call server action to revalidate cache
       const result = await updateTheme(data);
 
       if (result.success) {
@@ -85,13 +89,23 @@ export function ThemeForm({ theme }: { theme: Theme }) {
           description: result.message,
         });
         
-        // Update CSS variables on the fly for instant preview
         const root = document.documentElement;
         root.style.setProperty('--primary', hexToHsl(data.primaryColor) || '');
         root.style.setProperty('--background', hexToHsl(data.backgroundColor) || '');
         root.style.setProperty('--card', hexToHsl(data.surfaceColor) || '');
-        // Note: textPrimaryColor doesn't have a direct CSS variable in the default setup.
-        // A more complex setup would be needed to handle text color changes dynamically without a page reload.
+        root.style.setProperty('--foreground', hexToHsl(data.textPrimaryColor) || '');
+
+        if (data.useGradientBorder) {
+            root.style.setProperty('--gradient-start', hexToHsl(data.gradientStartColor) || '');
+            root.style.setProperty('--gradient-end', hexToHsl(data.gradientEndColor) || '');
+        }
+        
+        // This will trigger the ThemeApplicator on next page load, but we can manually toggle a class for instant preview
+        if (data.useGradientBorder) {
+          document.body.classList.add('use-gradient-border');
+        } else {
+          document.body.classList.remove('use-gradient-border');
+        }
 
         form.reset(data);
       } else {
@@ -121,11 +135,42 @@ export function ThemeForm({ theme }: { theme: Theme }) {
             <CardTitle>Site Theme</CardTitle>
             <CardDescription>Customize the main colors of your website.</CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ColorInput field={{ control: form.control, name: "primaryColor" }} label="Primary Color" />
-            <ColorInput field={{ control: form.control, name: "backgroundColor" }} label="Background Color" />
-            <ColorInput field={{ control: form.control, name: "surfaceColor" }} label="Surface Color (Cards)" />
-            <ColorInput field={{ control: form.control, name: "textPrimaryColor" }} label="Primary Text Color" />
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <ColorInput field={{ control: form.control, name: "primaryColor" }} label="Primary Color" />
+                <ColorInput field={{ control: form.control, name: "backgroundColor" }} label="Background Color" />
+                <ColorInput field={{ control: form.control, name: "surfaceColor" }} label="Surface Color (Cards)" />
+                <ColorInput field={{ control: form.control, name: "textPrimaryColor" }} label="Primary Text Color" />
+            </div>
+
+            <div className="space-y-4 rounded-lg border p-4">
+                 <FormField
+                  control={form.control}
+                  name="useGradientBorder"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between">
+                      <div className='space-y-0.5'>
+                        <FormLabel>Use Gradient Borders</FormLabel>
+                        <FormDescription>
+                            Apply a gradient border to cards and primary buttons.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                {useGradient && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                        <ColorInput field={{ control: form.control, name: "gradientStartColor" }} label="Gradient Start" />
+                        <ColorInput field={{ control: form.control, name: "gradientEndColor" }} label="Gradient End" />
+                    </div>
+                )}
+            </div>
           </CardContent>
           <CardFooter>
             <Button type="submit" disabled={isSubmitting}>

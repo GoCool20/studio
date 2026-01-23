@@ -36,7 +36,7 @@ export type Experience = {
 };
 
 export type Education = {
-  id: string;
+  id:string;
   degree: string;
   institution: string;
   duration: string;
@@ -57,6 +57,9 @@ export type Theme = {
   backgroundColor: string;
   surfaceColor: string;
   textPrimaryColor: string;
+  useGradientBorder: boolean;
+  gradientStartColor: string;
+  gradientEndColor: string;
 };
 
 export type DashboardStats = {

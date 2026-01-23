@@ -8,6 +8,9 @@ const defaultTheme: Theme = {
   backgroundColor: "#050E1F",
   surfaceColor: "#0E1A33",
   textPrimaryColor: "#FAFBFC",
+  useGradientBorder: false,
+  gradientStartColor: "#4285F4",
+  gradientEndColor: "#9333ea",
 };
 
 export async function getTheme(): Promise<Theme> {
@@ -15,7 +18,10 @@ export async function getTheme(): Promise<Theme> {
   try {
     const docRef = doc(firestore, 'theme', 'main');
     const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? docSnap.data() as Theme : defaultTheme;
+    if (docSnap.exists()) {
+      return { ...defaultTheme, ...docSnap.data() } as Theme;
+    }
+    return defaultTheme;
   } catch (error) {
     console.error("Error fetching theme:", error);
     return defaultTheme;
