@@ -2,14 +2,16 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
+// TODO: Replace with your actual Firebase project configuration.
+// You can find this in your Firebase project settings.
 const firebaseConfig = {
-    apiKey: "AIzaSyC5...<redacted>",
-    authDomain: "devfolio-f3a74.firebaseapp.com",
-    projectId: "devfolio-f3a74",
-    storageBucket: "devfolio-f3a74.appspot.com",
-    messagingSenderId: "100...<redacted>",
-    appId: "1:100...<redacted>",
-    measurementId: "G-C...<redacted>"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID",
+    measurementId: "YOUR_MEASUREMENT_ID" // This is optional
 };
 
 // Initialize Firebase
