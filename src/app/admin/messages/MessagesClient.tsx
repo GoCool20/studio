@@ -25,11 +25,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Mail, MailOpen, Trash2, Inbox } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export function MessagesClient({ messages }: { messages: Message[] }) {
+type SerializableMessage = Omit<Message, 'createdAt'> & { createdAt: string };
+
+export function MessagesClient({ messages }: { messages: SerializableMessage[] }) {
   const { toast } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
@@ -108,7 +109,7 @@ export function MessagesClient({ messages }: { messages: Message[] }) {
                  </div>
                  <div className="flex items-center gap-4">
                     <span className="text-xs text-muted-foreground">
-                        {format(message.createdAt.toDate(), 'PPP p')}
+                        {format(new Date(message.createdAt), 'PPP p')}
                     </span>
                  </div>
               </div>
