@@ -15,7 +15,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
-import { firestore } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 
 const skillSchema = z.object({
@@ -32,7 +31,7 @@ type SkillsFormValues = z.infer<typeof skillsFormSchema>;
 export function SkillsForm({ initialSkills }: { initialSkills: Skill[] }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, firestore } = useAuth();
   
   const form = useForm<SkillsFormValues>({
     resolver: zodResolver(skillsFormSchema),
@@ -47,9 +46,7 @@ export function SkillsForm({ initialSkills }: { initialSkills: Skill[] }) {
   const onSubmit = async (data: SkillsFormValues) => {
     setIsSubmitting(true);
 
-    console.log("Attempting to save skills. Current user:", user);
     if (!user) {
-      console.error("No user authenticated. Aborting save.");
       toast({
         title: 'Authentication Error',
         description: "You are not logged in. Please log in and try again.",

@@ -7,7 +7,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, firestore } from "@/lib/firebase";
 import type { AuthContextType } from "./types";
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,9 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     login: (email: string, pass: string) => signInWithEmailAndPassword(auth, email, pass),
     logout: () => signOut(auth),
+    firestore,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-
-// Add a type definition file for context

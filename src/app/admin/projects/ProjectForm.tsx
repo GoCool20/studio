@@ -9,7 +9,6 @@ import { z } from 'zod';
 import type { Project } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
-import { firestore } from '@/lib/firebase';
 import { revalidateAndRedirectProjects } from '@/actions/projects';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -46,7 +45,7 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useAuth();
+  const { user, firestore } = useAuth();
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
@@ -59,9 +58,7 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
   const onSubmit = async (data: ProjectFormValues) => {
     setIsSubmitting(true);
 
-    console.log("Attempting to save project. Current user:", user);
     if (!user) {
-      console.error("No user authenticated. Aborting save.");
       toast({
         title: 'Authentication Error',
         description: "You are not logged in. Please log in and try again.",

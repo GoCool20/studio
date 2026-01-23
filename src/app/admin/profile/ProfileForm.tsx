@@ -9,7 +9,6 @@ import { updateProfile } from '@/actions/profile';
 import type { Profile } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { doc, setDoc } from 'firebase/firestore';
-import { firestore } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 
 import { Button } from '@/components/ui/button';
@@ -34,7 +33,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 export function ProfileForm({ profile }: { profile: Profile }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, firestore } = useAuth();
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: profile,
@@ -43,9 +42,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   const onSubmit = async (data: ProfileFormValues) => {
     setIsSubmitting(true);
     
-    console.log("Attempting to save profile. Current user:", user);
     if (!user) {
-      console.error("No user authenticated. Aborting save.");
       toast({
         title: 'Authentication Error',
         description: "You are not logged in. Please log in and try again.",

@@ -14,7 +14,6 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { doc, setDoc } from 'firebase/firestore';
-import { firestore } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 
 const educationEntrySchema = z.object({
@@ -38,7 +37,7 @@ type EducationFormProps = {
 export function EducationForm({ initialData }: EducationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, firestore } = useAuth();
 
   const form = useForm<EducationFormValues>({
     resolver: zodResolver(educationFormSchema),
@@ -55,9 +54,7 @@ export function EducationForm({ initialData }: EducationFormProps) {
   const onSubmit = async (data: EducationFormValues) => {
     setIsSubmitting(true);
 
-    console.log("Attempting to save education details. Current user:", user);
     if (!user) {
-      console.error("No user authenticated. Aborting save.");
       toast({
         title: 'Authentication Error',
         description: "You are not logged in. Please log in and try again.",

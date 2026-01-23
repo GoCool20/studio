@@ -7,7 +7,6 @@ import { revalidateMessages } from '@/actions/messages';
 import type { Message } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { firestore } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import {
   Accordion,
@@ -35,10 +34,9 @@ export function MessagesClient({ messages }: { messages: Message[] }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const { user } = useAuth();
+  const { user, firestore } = useAuth();
 
   const handleToggleRead = async (id: string, read: boolean) => {
-    console.log("Attempting to toggle read status. Current user:", user);
     if (!user) {
       toast({ title: 'Authentication Error', description: 'Please log in to perform this action.', variant: 'destructive' });
       return;
@@ -63,7 +61,6 @@ export function MessagesClient({ messages }: { messages: Message[] }) {
   const handleDelete = async () => {
     if (!messageToDelete) return;
 
-    console.log("Attempting to delete message. Current user:", user);
     if (!user) {
       toast({ title: 'Authentication Error', description: 'Please log in to perform this action.', variant: 'destructive' });
       setShowDeleteDialog(false);

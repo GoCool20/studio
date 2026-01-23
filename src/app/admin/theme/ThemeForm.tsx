@@ -10,7 +10,6 @@ import type { Theme } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { hexToHsl } from '@/lib/utils';
 import { doc, setDoc } from 'firebase/firestore';
-import { firestore } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 
 import { Button } from '@/components/ui/button';
@@ -52,7 +51,7 @@ function ColorInput({ field, label }: { field: any; label: string }) {
 export function ThemeForm({ theme }: { theme: Theme }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, firestore } = useAuth();
 
   const form = useForm<ThemeFormValues>({
     resolver: zodResolver(themeSchema),
@@ -62,9 +61,7 @@ export function ThemeForm({ theme }: { theme: Theme }) {
   const onSubmit = async (data: ThemeFormValues) => {
     setIsSubmitting(true);
 
-    console.log("Attempting to save theme. Current user:", user);
     if (!user) {
-      console.error("No user authenticated. Aborting save.");
       toast({
         title: 'Authentication Error',
         description: "You are not logged in. Please log in and try again.",

@@ -7,7 +7,6 @@ import { deleteProjectAction } from '@/actions/projects';
 import type { Project } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { doc, deleteDoc } from 'firebase/firestore';
-import { firestore } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import {
   Table,
@@ -41,13 +40,12 @@ export function ProjectsClient({ projects }: { projects: Project[] }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const { user } = useAuth();
+  const { user, firestore } = useAuth();
 
 
   const handleDelete = async () => {
     if (!projectToDelete) return;
     
-    console.log("Attempting to delete project. Current user:", user);
     if (!user) {
       toast({ title: 'Authentication Error', description: 'Please log in to perform this action.', variant: 'destructive' });
       setShowDeleteDialog(false);
