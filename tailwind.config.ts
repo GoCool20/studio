@@ -8,6 +8,13 @@ export default {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    container: {
+      center: true,
+      padding: '2rem',
+      screens: {
+        '2xl': '1400px',
+      },
+    },
     extend: {
       fontFamily: {
         body: ['PT Sans', 'sans-serif'],
@@ -68,8 +75,12 @@ export default {
       },
       borderRadius: {
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        md: 'calc(var(--radius) - 4px)',
+        sm: 'calc(var(--radius) - 8px)',
+      },
+      boxShadow: {
+        soft: '0 4px 14px 0 hsla(0, 0%, 0%, 0.1)',
+        'soft-lg': '0 10px 30px 0 hsla(0, 0%, 0%, 0.1)',
       },
       keyframes: {
         'accordion-down': {
@@ -93,7 +104,37 @@ export default {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
+      typography: (theme: (arg0: string) => any) => ({
+        DEFAULT: {
+          css: {
+            color: theme('colors.muted.foreground'),
+            a: {
+              color: theme('colors.primary.DEFAULT'),
+              '&:hover': {
+                color: theme('colors.primary.DEFAULT'),
+              },
+            },
+            'h1,h2,h3,h4': {
+              color: theme('colors.foreground'),
+            },
+          },
+        },
+        invert: {
+          css: {
+            color: theme('colors.muted.foreground'),
+             a: {
+              color: theme('colors.primary.DEFAULT'),
+              '&:hover': {
+                color: theme('colors.primary.DEFAULT'),
+              },
+            },
+            'h1,h2,h3,h4': {
+              color: theme('colors.foreground'),
+            },
+          },
+        },
+      }),
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
 } satisfies Config;

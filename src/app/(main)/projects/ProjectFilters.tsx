@@ -23,10 +23,11 @@ export function ProjectFilters({ allTech, projects }: ProjectFiltersProps) {
 
   return (
     <>
-      <div className="mb-8 flex flex-wrap justify-center gap-2">
+      <div className="mb-12 flex flex-wrap justify-center gap-3">
         <Button
           variant={selectedTech === null ? "default" : "secondary"}
           onClick={() => setSelectedTech(null)}
+          size="sm"
         >
           All
         </Button>
@@ -35,6 +36,7 @@ export function ProjectFilters({ allTech, projects }: ProjectFiltersProps) {
             key={tech}
             variant={selectedTech === tech ? "default" : "secondary"}
             onClick={() => setSelectedTech(tech)}
+            size="sm"
           >
             {tech}
           </Button>
@@ -43,7 +45,7 @@ export function ProjectFilters({ allTech, projects }: ProjectFiltersProps) {
 
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         {filteredProjects.map((project) => (
-          <Card key={project.id} className="flex flex-col overflow-hidden">
+          <Card key={project.id} className="flex flex-col overflow-hidden transition-transform duration-300 hover:-translate-y-2">
             <CardHeader className="p-0">
               <div className="relative h-56 w-full">
                 <Image
@@ -55,19 +57,19 @@ export function ProjectFilters({ allTech, projects }: ProjectFiltersProps) {
                 />
               </div>
             </CardHeader>
-            <CardContent className="flex-1 pt-6">
-              <CardTitle className="font-headline text-xl">{project.title}</CardTitle>
-              <CardDescription className="mt-2 text-base">{project.shortDescription}</CardDescription>
-              <div className="mt-4 flex flex-wrap gap-2">
+            <CardContent className="flex-1 p-6">
+              <CardTitle className="text-2xl">{project.title}</CardTitle>
+              <CardDescription className="mt-3 text-base leading-relaxed">{project.shortDescription}</CardDescription>
+              <div className="mt-6 flex flex-wrap gap-2">
                 {project.techStack.map((tech) => (
                   <Badge key={tech} variant="secondary">{tech}</Badge>
                 ))}
               </div>
             </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
+            <CardFooter className="p-6">
+              <Button asChild className="w-full" variant="secondary">
                 <Link href={`/projects/${project.id}`}>
-                  View Details <ArrowRight className="ml-2" />
+                  View Details <ArrowRight />
                 </Link>
               </Button>
             </CardFooter>

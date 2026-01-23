@@ -1,7 +1,6 @@
 'use client';
 
-import { useFormStatus } from 'react-dom';
-import { useActionState, useEffect, useRef } from 'react';
+import { useFormStatus, useActionState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { submitContactForm } from '@/actions/contact';
 import { Button } from '@/components/ui/button';
@@ -20,8 +19,8 @@ const initialState = {
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+    <Button type="submit" size="lg" className="w-full" disabled={pending}>
+      {pending ? <Loader2 className="animate-spin" /> : null}
       Send Message
     </Button>
   );
@@ -52,23 +51,23 @@ export function ContactForm() {
     <Card>
       <form ref={formRef} action={formAction}>
         <CardHeader>
-          <CardTitle className="text-xl">Send a Message</CardTitle>
+          <CardTitle className="text-2xl">Send a Message</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input id="name" name="name" placeholder="Your Name" />
-            {state.errors?.name && <p className="text-sm text-destructive">{state.errors.name}</p>}
+            {state.errors?.name && <p className="pt-1 text-sm text-destructive">{state.errors.name}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input id="email" name="email" type="email" placeholder="your.email@example.com" />
-            {state.errors?.email && <p className="text-sm text-destructive">{state.errors.email}</p>}
+            {state.errors?.email && <p className="pt-1 text-sm text-destructive">{state.errors.email}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="message">Message</Label>
-            <Textarea id="message" name="message" placeholder="Your message..." />
-            {state.errors?.message && <p className="text-sm text-destructive">{state.errors.message}</p>}
+            <Textarea id="message" name="message" placeholder="Your message..." rows={5} />
+            {state.errors?.message && <p className="pt-1 text-sm text-destructive">{state.errors.message}</p>}
           </div>
         </CardContent>
         <CardFooter>

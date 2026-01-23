@@ -21,7 +21,7 @@ export function Header() {
       key={item.href}
       href={item.href}
       className={cn(
-        'text-sm font-medium transition-colors hover:text-primary',
+        'text-md font-medium transition-colors hover:text-primary',
         pathname === item.href ? 'text-primary' : 'text-muted-foreground'
       )}
     >
@@ -30,34 +30,34 @@ export function Header() {
   ));
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-sm">
-      <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
-        <div className="flex gap-6 md:gap-10">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 md:px-8">
+        <div className="flex items-center gap-10">
           <Logo />
-          <nav className="hidden gap-6 md:flex">{mainNav}</nav>
+          <nav className="hidden gap-8 md:flex">{mainNav}</nav>
         </div>
-        <div className="flex flex-1 items-center justify-end space-x-4">
-          <nav className="flex items-center space-x-2">
-            {!loading && user && (
-              <Link href="/admin">
-                <Button variant="ghost" size="icon" aria-label="Admin Dashboard">
-                  <UserCircle className="h-5 w-5" />
-                </Button>
-              </Link>
-            )}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle Menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left">
+        <div className="flex items-center gap-2">
+          {!loading && user && (
+            <Link href="/admin">
+              <Button variant="ghost" size="icon" aria-label="Admin Dashboard">
+                <UserCircle className="h-6 w-6" />
+              </Button>
+            </Link>
+          )}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Toggle Menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left">
+              <div className="p-6">
                 <Logo />
-                <div className="mt-8 flex flex-col space-y-4">{mainNav}</div>
-              </SheetContent>
-            </Sheet>
-          </nav>
+              </div>
+              <div className="mt-8 flex flex-col space-y-6 px-6">{mainNav}</div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
