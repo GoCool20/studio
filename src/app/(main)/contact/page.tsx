@@ -32,7 +32,7 @@ export default async function ContactPage() {
   const profile = await getProfile();
 
   return (
-    <div className="container mx-auto max-w-7xl space-y-24 px-4 py-24 md:px-8 md:py-32">
+    <div className="container mx-auto max-w-5xl space-y-24 px-4 py-24 md:px-8 md:py-32">
       <header className="text-center">
         <h1 className="text-4xl font-bold md:text-5xl">
           Get In Touch
