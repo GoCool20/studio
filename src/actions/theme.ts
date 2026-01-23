@@ -1,8 +1,7 @@
+
 "use server";
 
 import { z } from "zod";
-import { doc, setDoc } from "firebase/firestore";
-import { firestore } from "@/lib/firebase";
 import { revalidatePath } from "next/cache";
 
 const themeSchema = z.object({
@@ -23,15 +22,12 @@ export async function updateTheme(data: z.infer<typeof themeSchema>) {
   }
 
   try {
-    const themeRef = doc(firestore, "theme", "main");
-    await setDoc(themeRef, validatedFields.data);
-
     // Revalidate all pages to apply the new theme
     revalidatePath("/", "layout");
 
     return { success: true, message: "Theme updated successfully!" };
   } catch (error) {
-    console.error("Error updating theme:", error);
+    console.error("Error revalidating theme:", error);
     return { success: false, message: "An unexpected error occurred." };
   }
 }

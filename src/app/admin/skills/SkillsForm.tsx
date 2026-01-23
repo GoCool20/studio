@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -13,6 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { doc, setDoc } from 'firebase/firestore';
+import { firestore } from '@/lib/firebase';
 
 const skillSchema = z.object({
   name: z.string().min(1, "Skill name is required."),
@@ -41,21 +44,35 @@ export function SkillsForm({ initialSkills }: { initialSkills: Skill[] }) {
 
   const onSubmit = async (data: SkillsFormValues) => {
     setIsSubmitting(true);
-    const result = await updateSkills(data);
-    setIsSubmitting(false);
+    
+    try {
+      const skillsRef = doc(firestore, "skills", "main");
+      await setDoc(skillsRef, { skills: data.skills });
 
-    if (result.success) {
-      toast({
-        title: 'Success!',
-        description: result.message,
-      });
-      form.reset(data);
-    } else {
-      toast({
-        title: 'Error',
-        description: result.message,
-        variant: 'destructive',
-      });
+      const result = await updateSkills(data);
+
+      if (result.success) {
+        toast({
+          title: 'Success!',
+          description: result.message,
+        });
+        form.reset(data);
+      } else {
+        toast({
+          title: 'Error during revalidation',
+          description: result.message,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+        console.error("Error updating skills:", error);
+        toast({
+            title: 'Error',
+            description: "Failed to save skills. Please check permissions and try again.",
+            variant: 'destructive',
+        });
+    } finally {
+        setIsSubmitting(false);
     }
   };
 

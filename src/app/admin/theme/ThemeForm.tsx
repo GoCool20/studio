@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -8,6 +9,8 @@ import { updateTheme } from '@/actions/theme';
 import type { Theme } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { hexToHsl } from '@/lib/utils';
+import { doc, setDoc } from 'firebase/firestore';
+import { firestore } from '@/lib/firebase';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,31 +59,47 @@ export function ThemeForm({ theme }: { theme: Theme }) {
 
   const onSubmit = async (data: ThemeFormValues) => {
     setIsSubmitting(true);
-    const result = await updateTheme(data);
-    setIsSubmitting(false);
+    
+    try {
+      // 1. Write to database from the client
+      const themeRef = doc(firestore, "theme", "main");
+      await setDoc(themeRef, data);
 
-    if (result.success) {
-      toast({
-        title: 'Success!',
-        description: result.message,
-      });
-      
-      // Update CSS variables on the fly for instant preview
-      const root = document.documentElement;
-      root.style.setProperty('--primary', hexToHsl(data.primaryColor) || '');
-      root.style.setProperty('--background', hexToHsl(data.backgroundColor) || '');
-      root.style.setProperty('--card', hexToHsl(data.surfaceColor) || '');
-      // Note: textPrimaryColor doesn't have a direct CSS variable in the default setup.
-      // A more complex setup would be needed to handle text color changes dynamically without a page reload.
+      // 2. Call server action to revalidate cache
+      const result = await updateTheme(data);
 
-      form.reset(data);
-    } else {
+      if (result.success) {
+        toast({
+          title: 'Success!',
+          description: result.message,
+        });
+        
+        // Update CSS variables on the fly for instant preview
+        const root = document.documentElement;
+        root.style.setProperty('--primary', hexToHsl(data.primaryColor) || '');
+        root.style.setProperty('--background', hexToHsl(data.backgroundColor) || '');
+        root.style.setProperty('--card', hexToHsl(data.surfaceColor) || '');
+        // Note: textPrimaryColor doesn't have a direct CSS variable in the default setup.
+        // A more complex setup would be needed to handle text color changes dynamically without a page reload.
+
+        form.reset(data);
+      } else {
+        toast({
+          title: 'Error during revalidation',
+          description: result.message,
+          variant: 'destructive',
+        });
+      }
+    } catch(error) {
+      console.error("Error updating theme:", error);
       toast({
-        title: 'Error',
-        description: result.message,
-        variant: 'destructive',
+          title: 'Error',
+          description: "Failed to save theme. Check permissions and try again.",
+          variant: 'destructive',
       });
     }
+    
+    setIsSubmitting(false);
   };
 
   return (

@@ -1,95 +1,209 @@
+
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import type { Project } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
+import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
+import { firestore } from '@/lib/firebase';
+import { revalidateAndRedirectProjects } from '@/actions/projects';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
+const projectSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  shortDescription: z.string().min(1, "Short description is required"),
+  detailedDescription: z.string().min(1, "Detailed description is required"),
+  techStack: z.preprocess((val) => {
+      if (typeof val === 'string') return val.split(',').map(s => s.trim()).filter(Boolean);
+      return val;
+    }, z.array(z.string()).min(1, "At least one tech stack item is required")),
+  githubUrl: z.string().url("Invalid GitHub URL").optional().or(z.literal('')),
+  liveDemoUrl: z.string().url("Invalid live demo URL").optional().or(z.literal('')),
+  imageUrl: z.string().url("Invalid image URL").optional().or(z.literal('')),
+  featured: z.boolean(),
+});
+
+type ProjectFormValues = z.infer<typeof projectSchema>;
+
 type ProjectFormProps = {
-  action: (payload: FormData) => void;
   initialData?: Project | null;
 };
 
-const initialState = {
-  errors: {},
-};
+export function ProjectForm({ initialData }: ProjectFormProps) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-function SubmitButton({ isUpdate }: { isUpdate: boolean }) {
-  const { pending } = useFormStatus();
+  const form = useForm<ProjectFormValues>({
+    resolver: zodResolver(projectSchema),
+    defaultValues: {
+      ...initialData,
+      techStack: initialData?.techStack?.join(', ') || '',
+    } as any,
+  });
+
+  const onSubmit = async (data: ProjectFormValues) => {
+    setIsSubmitting(true);
+    
+    try {
+      if (initialData?.id) {
+        // Update existing project
+        const projectRef = doc(firestore, "projects", initialData.id);
+        await setDoc(projectRef, data);
+      } else {
+        // Create new project
+        await addDoc(collection(firestore, "projects"), data);
+      }
+      
+      // Revalidate and redirect
+      await revalidateAndRedirectProjects();
+
+    } catch (error) {
+      console.error("Error saving project:", error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save project. Please check permissions and try again.',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <Button type="submit" disabled={pending}>
-      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      {isUpdate ? 'Update Project' : 'Create Project'}
-    </Button>
-  );
-}
-
-export function ProjectForm({ action, initialData }: ProjectFormProps) {
-  const [state, formAction] = useFormState(action, initialState);
-
-  return (
-    <form action={formAction}>
-      <Card>
-        <CardHeader>
-          <CardTitle>{initialData ? 'Edit Project' : 'Create New Project'}</CardTitle>
-          <CardDescription>
-            {initialData ? 'Update the details of your project.' : 'Fill in the details to add a new project.'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input id="title" name="title" defaultValue={initialData?.title} />
-            {state?.errors?.title && <p className="text-sm text-destructive">{state.errors.title}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="shortDescription">Short Description</Label>
-            <Input id="shortDescription" name="shortDescription" defaultValue={initialData?.shortDescription} />
-             {state?.errors?.shortDescription && <p className="text-sm text-destructive">{state.errors.shortDescription}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="detailedDescription">Detailed Description</Label>
-            <Textarea id="detailedDescription" name="detailedDescription" defaultValue={initialData?.detailedDescription} />
-             {state?.errors?.detailedDescription && <p className="text-sm text-destructive">{state.errors.detailedDescription}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="techStack">Tech Stack (comma-separated)</Label>
-            <Input id="techStack" name="techStack" defaultValue={initialData?.techStack?.join(', ')} />
-             {state?.errors?.techStack && <p className="text-sm text-destructive">{state.errors.techStack}</p>}
-          </div>
-           <div className="space-y-2">
-            <Label htmlFor="imageUrl">Image URL</Label>
-            <Input id="imageUrl" name="imageUrl" defaultValue={initialData?.imageUrl} />
-             {state?.errors?.imageUrl && <p className="text-sm text-destructive">{state.errors.imageUrl}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="githubUrl">GitHub URL</Label>
-            <Input id="githubUrl" name="githubUrl" defaultValue={initialData?.githubUrl} />
-             {state?.errors?.githubUrl && <p className="text-sm text-destructive">{state.errors.githubUrl}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="liveDemoUrl">Live Demo URL</Label>
-            <Input id="liveDemoUrl" name="liveDemoUrl" defaultValue={initialData?.liveDemoUrl} />
-             {state?.errors?.liveDemoUrl && <p className="text-sm text-destructive">{state.errors.liveDemoUrl}</p>}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox id="featured" name="featured" defaultChecked={initialData?.featured} />
-            <Label htmlFor="featured">Featured Project</Label>
-          </div>
-        </CardContent>
-        <CardFooter className="gap-2">
-          <SubmitButton isUpdate={!!initialData} />
-          <Button variant="outline" asChild>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <Card>
+          <CardHeader>
+            <CardTitle>{initialData ? 'Edit Project' : 'Create New Project'}</CardTitle>
+            <CardDescription>
+              {initialData ? 'Update the details of your project.' : 'Fill in the details to add a new project.'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <FormField
+              control={form.control} name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control} name="shortDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Short Description</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control} name="detailedDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Detailed Description</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control} name="techStack"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tech Stack (comma-separated)</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control} name="imageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image URL</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control} name="githubUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>GitHub URL</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control} name="liveDemoUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Live Demo URL</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control} name="featured"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                   <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Featured Project</FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+          </CardContent>
+          <CardFooter className="gap-2">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {initialData ? 'Update Project' : 'Create Project'}
+            </Button>
+            <Button variant="outline" asChild>
               <Link href="/admin/projects">Cancel</Link>
-          </Button>
-        </CardFooter>
-      </Card>
-    </form>
+            </Button>
+          </CardFooter>
+        </Card>
+      </form>
+    </Form>
   );
 }

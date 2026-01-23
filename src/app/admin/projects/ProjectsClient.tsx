@@ -1,10 +1,13 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
-import { deleteProject } from '@/actions/projects';
+import { deleteProjectAction } from '@/actions/projects';
 import type { Project } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { doc, deleteDoc } from 'firebase/firestore';
+import { firestore } from '@/lib/firebase';
 import {
   Table,
   TableBody,
@@ -36,17 +39,26 @@ export function ProjectsClient({ projects }: { projects: Project[] }) {
   const { toast } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
 
   const handleDelete = async () => {
     if (!projectToDelete) return;
-    const result = await deleteProject(projectToDelete);
-    if (result.success) {
+    try {
+      await deleteDoc(doc(firestore, "projects", projectToDelete));
+      
+      startTransition(() => {
+        deleteProjectAction();
+      });
+
       toast({ title: 'Success', description: 'Project deleted successfully.' });
-    } else {
-      toast({ title: 'Error', description: result.message, variant: 'destructive' });
+    } catch(error) {
+      console.error('Error deleting project', error)
+      toast({ title: 'Error', description: "Failed to delete project.", variant: 'destructive' });
+    } finally {
+      setShowDeleteDialog(false);
+      setProjectToDelete(null);
     }
-    setShowDeleteDialog(false);
-    setProjectToDelete(null);
   };
 
   const openDeleteDialog = (id: string) => {
@@ -82,7 +94,7 @@ export function ProjectsClient({ projects }: { projects: Project[] }) {
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
+                        <Button variant="ghost" className="h-8 w-8 p-0" disabled={isPending}>
                             <span className="sr-only">Open menu</span>
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>

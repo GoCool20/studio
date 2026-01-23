@@ -1,8 +1,7 @@
+
 "use server";
 
 import { z } from "zod";
-import { doc, setDoc } from "firebase/firestore";
-import { firestore } from "@/lib/firebase";
 import { revalidatePath } from "next/cache";
 
 const profileSchema = z.object({
@@ -26,16 +25,13 @@ export async function updateProfile(data: z.infer<typeof profileSchema>) {
   }
 
   try {
-    const profileRef = doc(firestore, "profile", "main");
-    await setDoc(profileRef, validatedFields.data, { merge: true });
-
     revalidatePath("/admin/profile");
     revalidatePath("/");
     revalidatePath("/about");
 
     return { success: true, message: "Profile updated successfully!" };
   } catch (error) {
-    console.error("Error updating profile:", error);
-    return { success: false, message: "An unexpected error occurred." };
+    console.error("Error revalidating profile:", error);
+    return { success: false, message: "An unexpected error occurred during revalidation." };
   }
 }

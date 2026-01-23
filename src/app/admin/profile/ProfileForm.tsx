@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -7,6 +8,8 @@ import { z } from 'zod';
 import { updateProfile } from '@/actions/profile';
 import type { Profile } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { doc, setDoc } from 'firebase/firestore';
+import { firestore } from '@/lib/firebase';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,21 +40,35 @@ export function ProfileForm({ profile }: { profile: Profile }) {
 
   const onSubmit = async (data: ProfileFormValues) => {
     setIsSubmitting(true);
-    const result = await updateProfile(data);
-    setIsSubmitting(false);
+    
+    try {
+      const profileRef = doc(firestore, "profile", "main");
+      await setDoc(profileRef, data, { merge: true });
 
-    if (result.success) {
-      toast({
-        title: 'Success!',
-        description: result.message,
-      });
-      form.reset(data); // reset form with new values
-    } else {
+      const result = await updateProfile(data);
+
+      if (result.success) {
+        toast({
+          title: 'Success!',
+          description: result.message,
+        });
+        form.reset(data); // reset form with new values
+      } else {
+        toast({
+          title: 'Error during revalidation',
+          description: result.message || 'An error occurred.',
+          variant: 'destructive',
+        });
+      }
+    } catch(error) {
+      console.error("Error updating profile:", error);
       toast({
         title: 'Error',
-        description: result.message || 'An error occurred.',
+        description: "Failed to save profile. Check permissions and try again.",
         variant: 'destructive',
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

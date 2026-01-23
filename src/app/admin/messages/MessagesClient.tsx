@@ -1,10 +1,13 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { format } from 'date-fns';
-import { deleteMessage, toggleMessageRead } from '@/actions/messages';
+import { revalidateMessages } from '@/actions/messages';
 import type { Message } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { firestore } from '@/lib/firebase';
 import {
   Accordion,
   AccordionContent,
@@ -30,11 +33,18 @@ export function MessagesClient({ messages }: { messages: Message[] }) {
   const { toast } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const handleToggleRead = async (id: string, read: boolean) => {
-    const result = await toggleMessageRead(id, read);
-    if (!result.success) {
-      toast({ title: 'Error', description: result.message, variant: 'destructive' });
+    try {
+      const messageRef = doc(firestore, 'messages', id);
+      await updateDoc(messageRef, { read: !read });
+      startTransition(() => {
+        revalidateMessages();
+      });
+    } catch (error) {
+      console.error('Error toggling message read status:', error);
+      toast({ title: 'Error', description: 'Failed to update message.', variant: 'destructive' });
     }
   };
 
@@ -45,14 +55,19 @@ export function MessagesClient({ messages }: { messages: Message[] }) {
   
   const handleDelete = async () => {
     if (!messageToDelete) return;
-    const result = await deleteMessage(messageToDelete);
-    if (result.success) {
-        toast({ title: 'Success', description: 'Message deleted.' });
-    } else {
-        toast({ title: 'Error', description: result.message, variant: 'destructive' });
+    try {
+      await deleteDoc(doc(firestore, "messages", messageToDelete));
+      startTransition(() => {
+        revalidateMessages();
+      });
+      toast({ title: 'Success', description: 'Message deleted.' });
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      toast({ title: 'Error', description: 'Failed to delete message.', variant: 'destructive' });
+    } finally {
+      setShowDeleteDialog(false);
+      setMessageToDelete(null);
     }
-    setShowDeleteDialog(false);
-    setMessageToDelete(null);
   }
 
   if (messages.length === 0) {
@@ -91,11 +106,11 @@ export function MessagesClient({ messages }: { messages: Message[] }) {
                     {message.message}
                 </div>
                  <div className="mt-4 flex gap-2 justify-end">
-                    <Button variant="outline" size="sm" onClick={() => handleToggleRead(message.id, message.read)}>
+                    <Button variant="outline" size="sm" onClick={() => handleToggleRead(message.id, message.read)} disabled={isPending}>
                       {message.read ? <Mail className="mr-2 h-4 w-4"/> : <MailOpen className="mr-2 h-4 w-4"/>}
                       {message.read ? 'Mark as Unread' : 'Mark as Read'}
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(message.id)}>
+                    <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(message.id)} disabled={isPending}>
                       <Trash2 className="mr-2 h-4 w-4"/> Delete
                     </Button>
                 </div>

@@ -1,8 +1,7 @@
+
 "use server";
 
 import { z } from "zod";
-import { doc, setDoc } from "firebase/firestore";
-import { firestore } from "@/lib/firebase";
 import { revalidatePath } from "next/cache";
 import type { Skill } from "@/lib/types";
 
@@ -27,9 +26,6 @@ export async function updateSkills(data: { skills: Skill[] }) {
   }
 
   try {
-    const skillsRef = doc(firestore, "skills", "main");
-    await setDoc(skillsRef, { skills: validatedFields.data.skills });
-
     revalidatePath("/admin/skills");
     revalidatePath("/about");
     revalidatePath("/");
@@ -39,7 +35,7 @@ export async function updateSkills(data: { skills: Skill[] }) {
       message: "Skills updated successfully!",
     };
   } catch (error) {
-    console.error("Error updating skills:", error);
+    console.error("Error revalidating skills:", error);
     return {
       success: false,
       message: "An unexpected error occurred. Please try again.",

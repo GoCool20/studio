@@ -13,6 +13,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { doc, setDoc } from 'firebase/firestore';
+import { firestore } from '@/lib/firebase';
 
 const educationEntrySchema = z.object({
   id: z.string(),
@@ -50,21 +52,35 @@ export function EducationForm({ initialData }: EducationFormProps) {
 
   const onSubmit = async (data: EducationFormValues) => {
     setIsSubmitting(true);
-    const result = await updateEducationAction(data);
-    setIsSubmitting(false);
+    
+    try {
+      const educationRef = doc(firestore, "education", "main");
+      await setDoc(educationRef, { entries: data.entries });
+      
+      const result = await updateEducationAction(data);
 
-    if (result.success) {
-      toast({
-        title: 'Success!',
-        description: result.message,
-      });
-      form.reset(data);
-    } else {
+      if (result.success) {
+        toast({
+          title: 'Success!',
+          description: result.message,
+        });
+        form.reset(data);
+      } else {
+        toast({
+          title: 'Error during revalidation',
+          description: result.message,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error("Error updating education:", error);
       toast({
         title: 'Error',
-        description: result.message,
+        description: 'Failed to save education details. Please check your permissions and try again.',
         variant: 'destructive',
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

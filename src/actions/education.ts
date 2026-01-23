@@ -2,10 +2,8 @@
 "use server";
 
 import { z } from "zod";
-import { doc, setDoc } from "firebase/firestore";
-import { firestore } from "@/lib/firebase";
-import type { Education } from "@/lib/types";
 import { revalidatePath } from "next/cache";
+import type { Education } from "@/lib/types";
 
 const educationEntrySchema = z.object({
   id: z.string(),
@@ -31,9 +29,6 @@ export async function updateEducationAction(data: { entries: Education[] }) {
   }
 
   try {
-    const educationRef = doc(firestore, "education", "main");
-    await setDoc(educationRef, { entries: validatedFields.data.entries });
-
     revalidatePath("/admin/education");
     revalidatePath("/about");
 
@@ -42,10 +37,10 @@ export async function updateEducationAction(data: { entries: Education[] }) {
       message: "Education details updated successfully!",
     };
   } catch (error) {
-    console.error("Error updating education:", error);
+    console.error("Error revalidating education:", error);
     return {
       success: false,
-      message: "An unexpected error occurred. Please try again.",
+      message: "An unexpected error occurred during revalidation. Please try again.",
     };
   }
 }
