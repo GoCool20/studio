@@ -53,7 +53,7 @@ export function ContactForm() {
   }, [state, toast]);
 
   return (
-    <Card className="bg-card/50">
+    <Card className="bg-card">
       <form ref={formRef} action={formAction}>
         <CardHeader>
           <CardTitle className="text-2xl">Send a Message</CardTitle>

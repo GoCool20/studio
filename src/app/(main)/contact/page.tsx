@@ -18,7 +18,7 @@ const SocialIcon = ({ platform }: { platform: string }) => {
 
 const ContactDetail = ({ icon, title, children }: { icon: React.ReactNode, title: string, children: React.ReactNode }) => (
     <div className="flex gap-6 items-start">
-        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-secondary">
+        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-secondary">
             {icon}
         </div>
         <div>
@@ -42,7 +42,7 @@ export default async function ContactPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 gap-16 lg:grid-cols-5 lg:gap-8">
+      <div className="grid grid-cols-1 gap-16 lg:grid-cols-5 lg:gap-16">
         <div className="lg:col-span-3">
           <ContactForm />
         </div>
@@ -66,7 +66,7 @@ export default async function ContactPage() {
                 <h3 className="mb-4 text-lg font-semibold">Connect Socially</h3>
                 <div className="flex gap-4">
                     {profile.socialLinks?.map((link: SocialLink) => (
-                        <Button asChild key={link.id} variant="outline" size="icon" className="h-12 w-12 rounded-full">
+                        <Button asChild key={link.id} variant="outline" size="icon" className="rounded-full">
                             <a href={link.url} target="_blank" rel="noopener noreferrer" aria-label={link.platform}>
                                 <SocialIcon platform={link.platform} />
                             </a>
