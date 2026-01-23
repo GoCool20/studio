@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Download, Mail } from 'lucide-react';
+import { ArrowRight, Download, Mail, Github, ExternalLink } from 'lucide-react';
 
 import { getProfile, getProjects, getSkills } from '@/lib/firestore';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -14,8 +14,8 @@ async function HeroSection() {
 
   return (
     <section className="w-full py-24 md:py-32 lg:py-40">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 md:grid-cols-2 md:px-8">
-        <div className="order-2 flex flex-col items-center gap-6 text-center md:order-1 md:items-start md:text-left">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 text-center md:grid-cols-2 md:px-8 md:text-left">
+        <div className="order-2 flex flex-col items-center gap-6 md:order-1 md:items-start">
           <h1 className="text-4xl font-bold md:text-5xl lg:text-6xl">
             {profile.name}
           </h1>
@@ -69,33 +69,61 @@ async function FeaturedProjects() {
         </div>
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {featuredProjects.slice(0, 3).map((project) => (
-            <Card key={project.id} className="flex flex-col overflow-hidden transition-transform duration-300 hover:-translate-y-2">
-              <CardHeader className="p-0">
-                <div className="relative h-56 w-full">
-                  <Image
-                    src={project.imageUrl || `https://picsum.photos/seed/${project.id}/600/400`}
-                    alt={project.title}
-                    fill
-                    className="object-cover"
-                    data-ai-hint="web app"
-                  />
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1 p-6">
-                <CardTitle className="text-2xl">{project.title}</CardTitle>
-                <CardDescription className="mt-3 text-base leading-relaxed">{project.shortDescription}</CardDescription>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {project.techStack.map((tech) => (
-                    <Badge key={tech} variant="secondary">{tech}</Badge>
+            <Card key={project.id} className="group flex flex-col overflow-hidden">
+              <Link href={`/projects/${project.id}`} aria-label={`View details for ${project.title}`}>
+                <CardHeader className="p-0">
+                  <div className="relative aspect-video w-full overflow-hidden">
+                    <Image
+                      src={project.imageUrl || `https://picsum.photos/seed/${project.id}/600/400`}
+                      alt={project.title}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      data-ai-hint="web app"
+                    />
+                  </div>
+                </CardHeader>
+              </Link>
+              <CardContent className="flex flex-1 flex-col p-6">
+                <CardTitle className="mb-2 text-xl font-bold group-hover:text-primary">
+                  <Link href={`/projects/${project.id}`}>{project.title}</Link>
+                </CardTitle>
+                <CardDescription className="mb-4 flex-grow text-muted-foreground">
+                  {project.shortDescription}
+                </CardDescription>
+                <div className="flex flex-wrap gap-2">
+                  {project.techStack.slice(0, 3).map((tech) => (
+                    <Badge key={tech} variant="secondary">
+                      {tech}
+                    </Badge>
                   ))}
+                  {project.techStack.length > 3 && (
+                    <Badge variant="outline">+{project.techStack.length - 3}</Badge>
+                  )}
                 </div>
               </CardContent>
-              <CardFooter className='p-6'>
-                 <Button asChild className="w-full" variant="secondary">
-                   <Link href={`/projects/${project.id}`}>
-                      View Details <ArrowRight />
-                   </Link>
-                 </Button>
+              <CardFooter className="flex items-center justify-between p-6 pt-0">
+                <Button asChild variant="link" className="p-0 text-sm font-semibold text-foreground hover:text-primary">
+                  <Link href={`/projects/${project.id}`}>
+                    View Details
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <div className="flex items-center gap-1">
+                  {project.githubUrl && (
+                    <Button asChild variant="outline" size="icon" className="h-8 w-8">
+                      <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+                        <Github className="h-4 w-4 text-muted-foreground" />
+                      </a>
+                    </Button>
+                  )}
+                  {project.liveDemoUrl && (
+                    <Button asChild variant="outline" size="icon" className="h-8 w-8">
+                      <a href={project.liveDemoUrl} target="_blank" rel="noopener noreferrer" aria-label="Live demo">
+                        <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                      </a>
+                    </Button>
+                  )}
+                </div>
               </CardFooter>
             </Card>
           ))}
@@ -107,8 +135,6 @@ async function FeaturedProjects() {
 
 async function SkillsArsenal() {
   const skills = await getSkills();
-  const technicalSkills = skills.filter(s => s.category === 'Technical');
-  const toolSkills = skills.filter(s => s.category === 'Tools');
 
   return (
     <section className="w-full py-24 md:py-32">
