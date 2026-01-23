@@ -10,7 +10,7 @@ import type { Profile } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { doc, setDoc } from 'firebase/firestore';
 import { useAuth } from '@/hooks/useAuth';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
 
 import { Button } from '@/components/ui/button';
@@ -193,14 +193,15 @@ export function ProfileForm({ profile }: { profile: Profile }) {
              <FormField
               control={form.control}
               name="resumeUrl"
-              render={({ field }) => (
+              render={({ field: { onChange, ...fieldProps } }) => (
                 <FormItem>
                   <FormLabel>Resume</FormLabel>
                   <FormControl>
                     <Input 
                       type="file" 
                       accept=".pdf,.doc,.docx"
-                      onChange={(e) => field.onChange(e.target.files)} 
+                      onChange={(e) => onChange(e.target.files)} 
+                      {...fieldProps}
                     />
                   </FormControl>
                    {profile.resumeUrl && (
@@ -215,14 +216,15 @@ export function ProfileForm({ profile }: { profile: Profile }) {
              <FormField
               control={form.control}
               name="avatarUrl"
-              render={({ field }) => (
+              render={({ field: { onChange, ...fieldProps } }) => (
                 <FormItem>
                   <FormLabel>Avatar</FormLabel>
                    <FormControl>
                     <Input 
                       type="file" 
                       accept="image/*"
-                      onChange={(e) => field.onChange(e.target.files)}
+                      onChange={(e) => onChange(e.target.files)}
+                      {...fieldProps}
                     />
                   </FormControl>
                   {profile.avatarUrl && (
