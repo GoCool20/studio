@@ -94,6 +94,12 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
       await revalidateAndRedirectProjects();
 
     } catch (error: any) {
+      // This is the expected behavior when using redirect() in a server action.
+      // We can safely ignore this error.
+      if (error.digest?.startsWith('NEXT_REDIRECT')) {
+        return;
+      }
+      
       console.error("Error saving project:", error);
       toast({
         title: 'Error',
