@@ -1,3 +1,4 @@
+
 import { getProfile } from "@/lib/firestore";
 import { ContactForm } from "./ContactForm";
 import { Mail, MapPin, Linkedin, Github } from "lucide-react";
