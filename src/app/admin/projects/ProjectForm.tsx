@@ -50,9 +50,15 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
-      ...initialData,
+      title: initialData?.title || '',
+      shortDescription: initialData?.shortDescription || '',
+      detailedDescription: initialData?.detailedDescription || '',
       techStack: initialData?.techStack?.join(', ') || '',
-    } as any,
+      githubUrl: initialData?.githubUrl || '',
+      liveDemoUrl: initialData?.liveDemoUrl || '',
+      imageUrl: initialData?.imageUrl || '',
+      featured: initialData?.featured || false,
+    },
   });
 
   const onSubmit = async (data: ProjectFormValues) => {
