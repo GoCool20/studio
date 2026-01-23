@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -114,15 +115,15 @@ export function ProjectFilters({ allTech, projects }: ProjectFiltersProps) {
         >
           <CarouselContent>
             {projects.map((project) => (
-              <CarouselItem key={project.id} className="md:basis-1/2 lg:basis-1/3">
+              <CarouselItem key={project.id} className="basis-4/5 md:basis-1/2 lg:basis-1/3">
                 <div className="p-1 h-full">
                   <ProjectCard project={project} />
                 </div>
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="hidden lg:flex" />
-          <CarouselNext className="hidden lg:flex" />
+          <CarouselPrevious className="hidden md:flex" />
+          <CarouselNext className="hidden md:flex" />
         </Carousel>
       ) : (
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
