@@ -9,17 +9,15 @@ import { z } from 'zod';
 import type { Project } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { revalidateAndRedirectProjects } from '@/actions/projects';
 import { useAuth } from '@/hooks/useAuth';
-import { storage } from "@/lib/firebase";
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -33,7 +31,7 @@ const projectSchema = z.object({
     }, z.array(z.string()).min(1, "At least one tech stack item is required")),
   githubUrl: z.string().url("Invalid GitHub URL").optional().or(z.literal('')),
   liveDemoUrl: z.string().url("Invalid live demo URL").optional().or(z.literal('')),
-  imageUrl: z.any().optional(),
+  imageUrl: z.string().url("Invalid image URL").optional().or(z.literal('')),
   featured: z.boolean(),
 });
 
@@ -58,16 +56,13 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
       techStack: initialData?.techStack?.join(', ') || '',
       githubUrl: initialData?.githubUrl || '',
       liveDemoUrl: initialData?.liveDemoUrl || '',
-      imageUrl: undefined,
+      imageUrl: initialData?.imageUrl || '',
       featured: initialData?.featured || false,
     },
   });
-  
-  const imageRef = form.register("imageUrl");
 
   const onSubmit = async (data: ProjectFormValues) => {
     setIsSubmitting(true);
-    console.log("Submission started. User:", user ? user.uid : "No user");
 
     if (!user) {
       toast({
@@ -80,22 +75,6 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
     }
     
     try {
-      let imageUrl = initialData?.imageUrl || '';
-      if (data.imageUrl && data.imageUrl.length > 0) {
-        const file = data.imageUrl[0] as File;
-        const storageRef = ref(storage, `projects/${user.uid}_${file.name}`);
-        try {
-            console.log("Attempting to upload project image...");
-            await uploadBytes(storageRef, file);
-            console.log("Project image upload successful. Getting download URL...");
-            imageUrl = await getDownloadURL(storageRef);
-            console.log("Project image download URL obtained:", imageUrl);
-        } catch (uploadError) {
-            console.error("Firebase Storage upload error (project image):", uploadError);
-            throw new Error("Failed to upload project image. Please check storage permissions.");
-        }
-      }
-
       const dataToSave = {
         title: data.title,
         shortDescription: data.shortDescription,
@@ -104,21 +83,16 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
         githubUrl: data.githubUrl,
         liveDemoUrl: data.liveDemoUrl,
         featured: data.featured,
-        imageUrl,
+        imageUrl: data.imageUrl,
       };
 
       if (initialData?.id) {
-        console.log(`Updating project ${initialData.id}...`);
         const projectRef = doc(firestore, "projects", initialData.id);
         await setDoc(projectRef, dataToSave);
-        console.log("Project updated successfully.");
       } else {
-        console.log("Creating new project...");
         await addDoc(collection(firestore, "projects"), dataToSave);
-        console.log("New project created successfully.");
       }
       
-      console.log("Revalidating and redirecting...");
       await revalidateAndRedirectProjects();
 
     } catch (error: any) {
@@ -194,21 +168,12 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
             <FormField
               control={form.control}
               name="imageUrl"
-              render={() => (
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Project Image</FormLabel>
+                  <FormLabel>Project Image URL</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="file"
-                      accept="image/*"
-                      {...imageRef}
-                    />
+                    <Input placeholder="https://example.com/image.png" {...field} value={field.value ?? ''} />
                   </FormControl>
-                  {initialData?.imageUrl && (
-                    <FormDescription>
-                      <a href={initialData.imageUrl} target="_blank" rel="noopener noreferrer" className="underline">View Current Image</a>
-                    </FormDescription>
-                  )}
                   <FormMessage />
                 </FormItem>
               )}

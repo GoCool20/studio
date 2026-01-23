@@ -10,7 +10,7 @@ const profileSchema = z.object({
   bio: z.string().min(1, "Bio is required"),
   location: z.string().min(1, "Location is required"),
   email: z.string().email("Invalid email address"),
-  resumeUrl: z.string().url("Invalid URL for resume"),
+  resumeUrl: z.string().url("Invalid URL for resume").or(z.literal('')),
   avatarUrl: z.string().url("Invalid URL for avatar").optional().or(z.literal('')),
 });
 
@@ -25,6 +25,7 @@ export async function updateProfile(data: z.infer<typeof profileSchema>) {
   }
 
   try {
+    // This action is now only for revalidation.
     revalidatePath("/admin/profile");
     revalidatePath("/");
     revalidatePath("/about");
