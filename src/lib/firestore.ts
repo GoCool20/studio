@@ -72,12 +72,17 @@ export async function getProjects(options: { featured?: boolean } = {}): Promise
     if (options.featured) {
       queryConstraints.push(where("featured", "==", true));
     }
-    queryConstraints.push(orderBy("orderIndex", "asc"));
     
     const q = query(projectsRef, ...queryConstraints);
 
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+    const projects = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+
+    // Sort projects by orderIndex in application code.
+    // Projects without an orderIndex will be placed at the end.
+    projects.sort((a, b) => (a.orderIndex ?? Infinity) - (b.orderIndex ?? Infinity));
+
+    return projects;
   } catch (error) {
     console.error("Error fetching projects:", error);
     return [];
