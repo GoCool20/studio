@@ -10,12 +10,14 @@ import type { Profile } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { doc, setDoc } from 'firebase/firestore';
 import { useAuth } from '@/hooks/useAuth';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/lib/firebase';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Loader2 } from 'lucide-react';
 
 const profileSchema = z.object({
@@ -24,8 +26,8 @@ const profileSchema = z.object({
   bio: z.string().min(1, "Bio is required"),
   location: z.string().min(1, "Location is required"),
   email: z.string().email("Invalid email address"),
-  resumeUrl: z.string().url("Invalid URL for resume"),
-  avatarUrl: z.string().url("Invalid URL for avatar").optional().or(z.literal('')),
+  resumeUrl: z.any().optional(),
+  avatarUrl: z.any().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -36,7 +38,11 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   const { user, firestore } = useAuth();
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: profile,
+    defaultValues: {
+      ...profile,
+      resumeUrl: undefined,
+      avatarUrl: undefined,
+    },
   });
 
   const onSubmit = async (data: ProfileFormValues) => {
@@ -45,7 +51,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     if (!user) {
       toast({
         title: 'Authentication Error',
-        description: "You are not logged in. Please log in and try again.",
+        description: "You must be logged in to update your profile.",
         variant: 'destructive',
       });
       setIsSubmitting(false);
@@ -53,17 +59,44 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     }
 
     try {
-      const profileRef = doc(firestore, "profile", "main");
-      await setDoc(profileRef, data, { merge: true });
+      let resumeUrl = profile.resumeUrl;
+      if (data.resumeUrl && data.resumeUrl.length > 0) {
+        const file = data.resumeUrl[0] as File;
+        const storageRef = ref(storage, `resumes/${user.uid}_${file.name}`);
+        await uploadBytes(storageRef, file);
+        resumeUrl = await getDownloadURL(storageRef);
+      }
 
-      const result = await updateProfile(data);
+      let avatarUrl = profile.avatarUrl;
+      if (data.avatarUrl && data.avatarUrl.length > 0) {
+        const file = data.avatarUrl[0] as File;
+        const storageRef = ref(storage, `avatars/${user.uid}_${file.name}`);
+        await uploadBytes(storageRef, file);
+        avatarUrl = await getDownloadURL(storageRef);
+      }
+
+      const dataToSave = {
+        name: data.name,
+        title: data.title,
+        bio: data.bio,
+        location: data.location,
+        email: data.email,
+        resumeUrl,
+        avatarUrl,
+      };
+
+      const profileRef = doc(firestore, "profile", "main");
+      await setDoc(profileRef, dataToSave, { merge: true });
+
+      const result = await updateProfile(dataToSave);
 
       if (result.success) {
         toast({
           title: 'Success!',
           description: result.message,
         });
-        form.reset(data); // reset form with new values
+        // The page will be revalidated, so we don't need to reset the form with new values
+        // as the component will re-render with the updated 'profile' prop.
       } else {
         toast({
           title: 'Error during revalidation',
@@ -162,10 +195,19 @@ export function ProfileForm({ profile }: { profile: Profile }) {
               name="resumeUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Resume URL</FormLabel>
+                  <FormLabel>Resume</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/resume.pdf" {...field} />
+                    <Input 
+                      type="file" 
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => field.onChange(e.target.files)} 
+                    />
                   </FormControl>
+                   {profile.resumeUrl && (
+                    <FormDescription>
+                      Current: <a href={profile.resumeUrl} target="_blank" rel="noopener noreferrer" className="underline">View Resume</a>
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -175,10 +217,19 @@ export function ProfileForm({ profile }: { profile: Profile }) {
               name="avatarUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Avatar URL</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://example.com/avatar.png" {...field} />
+                  <FormLabel>Avatar</FormLabel>
+                   <FormControl>
+                    <Input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={(e) => field.onChange(e.target.files)}
+                    />
                   </FormControl>
+                  {profile.avatarUrl && (
+                    <FormDescription>
+                      <a href={profile.avatarUrl} target="_blank" rel="noopener noreferrer" className="underline">View Current Avatar</a>
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
