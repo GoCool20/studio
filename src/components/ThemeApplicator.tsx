@@ -8,8 +8,7 @@ export async function ThemeApplicator() {
     '--primary': hexToHsl(theme.primaryColor),
     '--background': hexToHsl(theme.backgroundColor),
     '--card': hexToHsl(theme.surfaceColor),
-    // '--foreground' could be derived or use theme.textPrimaryColor
-    // For simplicity, we'll let the default globals.css handle foreground based on background.
+    '--foreground': hexToHsl(theme.textPrimaryColor),
   };
 
   const styleString = Object.entries(themeStyles)
@@ -19,6 +18,9 @@ export async function ThemeApplicator() {
 
   const css = `
     :root {
+      ${styleString}
+    }
+    .dark {
       ${styleString}
     }
   `;
