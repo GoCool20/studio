@@ -32,8 +32,8 @@ export default async function ContactPage() {
   const profile = await getProfile();
 
   return (
-    <div className="container mx-auto max-w-5xl space-y-24 px-4 py-24 md:px-8 md:py-32">
-      <header className="text-center">
+    <div className="container mx-auto flex max-w-5xl flex-grow flex-col justify-center px-4 py-12 md:px-8">
+      <header className="mb-12 text-center">
         <h1 className="text-4xl font-bold md:text-5xl">
           Get In Touch
         </h1>
@@ -42,12 +42,12 @@ export default async function ContactPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 gap-16 lg:grid-cols-5 lg:gap-16">
+      <div className="grid grid-cols-1 gap-16 lg:grid-cols-5 lg:gap-12">
         <div className="lg:col-span-3">
           <ContactForm />
         </div>
 
-        <aside className="space-y-12 lg:col-span-2">
+        <aside className="space-y-8 lg:col-span-2">
             <div className="space-y-8">
                 <ContactDetail icon={<Mail className="h-6 w-6 text-primary" />} title="Email">
                      <a href={`mailto:${profile.email}`} className="text-muted-foreground hover:text-primary transition-colors">{profile.email}</a>
