@@ -27,6 +27,14 @@ export type Skill = {
   category: "Technical" | "Tools";
 };
 
+export type Experience = {
+  id: string;
+  role: string;
+  company: string;
+  duration: string;
+  description: string;
+};
+
 export type Education = {
   id: string;
   degree: string;
@@ -56,4 +64,5 @@ export type DashboardStats = {
   skills: number;
   education: number;
   messages: number;
+  experience: number;
 };

@@ -8,7 +8,7 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-12">
       <h1 className="text-4xl font-bold">Dashboard</h1>
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-md font-medium">Total Projects</CardTitle>
@@ -16,6 +16,15 @@ export default async function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold">{stats.projects}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-md font-medium">Total Experience</CardTitle>
+            <Briefcase className="h-5 w-5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold">{stats.experience}</div>
           </CardContent>
         </Card>
         <Card>

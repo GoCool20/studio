@@ -23,6 +23,7 @@ const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/profile', label: 'Profile', icon: User },
   { href: '/admin/projects', label: 'Projects', icon: Briefcase },
+  { href: '/admin/experience', label: 'Experience', icon: Briefcase },
   { href: '/admin/skills', label: 'Skills', icon: Code },
   { href: '/admin/education', label: 'Education', icon: GraduationCap },
   { href: '/admin/messages', label: 'Messages', icon: Inbox },

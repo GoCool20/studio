@@ -1,13 +1,13 @@
 import { collection, doc, getDoc, getDocs, orderBy, query, where } from "firebase/firestore";
 import { firestore } from "./firebase";
-import type { Profile, Project, Skill, Education, Theme, DashboardStats, Message } from "./types";
+import type { Profile, Project, Skill, Education, Theme, DashboardStats, Message, Experience } from "./types";
 import { unstable_noStore as noStore } from 'next/cache';
 
 const defaultTheme: Theme = {
-  primaryColor: "#3F51B5",
-  backgroundColor: "#F0F4FF",
-  surfaceColor: "#FFFFFF",
-  textPrimaryColor: "#111827",
+  primaryColor: "#4285F4",
+  backgroundColor: "#050E1F",
+  surfaceColor: "#0E1A33",
+  textPrimaryColor: "#FAFBFC",
 };
 
 export async function getTheme(): Promise<Theme> {
@@ -39,8 +39,8 @@ export async function getProfile(): Promise<Profile> {
     bio: 'Welcome to your portfolio. This is a brief bio that you can edit in the admin dashboard.',
     location: 'City, Country',
     email: 'youremail@example.com',
-    resumeUrl: '#',
-    avatarUrl: 'https://picsum.photos/seed/dev-profile/400/400',
+    resumeUrl: '',
+    avatarUrl: '',
   };
 }
 
@@ -92,6 +92,20 @@ export async function getSkills(): Promise<Skill[]> {
   return [];
 }
 
+export async function getExperience(): Promise<Experience[]> {
+  noStore();
+  try {
+    const docRef = doc(firestore, 'experience', 'main');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists() && docSnap.data().entries) {
+      return docSnap.data().entries as Experience[];
+    }
+  } catch (error) {
+    console.error("Error fetching experience:", error);
+  }
+  return [];
+}
+
 export async function getEducation(): Promise<Education[]> {
   noStore();
   try {
@@ -109,25 +123,28 @@ export async function getEducation(): Promise<Education[]> {
 export async function getDashboardStats(): Promise<DashboardStats> {
   noStore();
   try {
-    const [projectsSnap, skillsSnap, educationSnap, messagesSnap] = await Promise.all([
+    const [projectsSnap, skillsSnap, educationSnap, messagesSnap, experienceSnap] = await Promise.all([
       getDocs(collection(firestore, "projects")),
       getDoc(doc(firestore, "skills", "main")),
       getDoc(doc(firestore, "education", "main")),
       getDocs(query(collection(firestore, "messages"), where("read", "==", false))),
+      getDoc(doc(firestore, "experience", "main")),
     ]);
 
     const skills = skillsSnap.exists() ? (skillsSnap.data().skills?.length || 0) : 0;
     const education = educationSnap.exists() ? (educationSnap.data().entries?.length || 0) : 0;
+    const experience = experienceSnap.exists() ? (experienceSnap.data().entries?.length || 0) : 0;
     
     return {
       projects: projectsSnap.size,
       skills: skills,
       education: education,
       messages: messagesSnap.size,
+      experience: experience,
     };
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
-    return { projects: 0, skills: 0, education: 0, messages: 0 };
+    return { projects: 0, skills: 0, education: 0, messages: 0, experience: 0 };
   }
 }
 
