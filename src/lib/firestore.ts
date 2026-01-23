@@ -1,0 +1,145 @@
+import { collection, doc, getDoc, getDocs, orderBy, query, where } from "firebase/firestore";
+import { firestore } from "./firebase";
+import type { Profile, Project, Skill, Education, Theme, DashboardStats, Message } from "./types";
+import { unstable_noStore as noStore } from 'next/cache';
+
+const defaultTheme: Theme = {
+  primaryColor: "#3F51B5",
+  backgroundColor: "#F0F4FF",
+  surfaceColor: "#FFFFFF",
+  textPrimaryColor: "#111827",
+};
+
+export async function getTheme(): Promise<Theme> {
+  noStore();
+  try {
+    const docRef = doc(firestore, 'theme', 'main');
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? docSnap.data() as Theme : defaultTheme;
+  } catch (error) {
+    console.error("Error fetching theme:", error);
+    return defaultTheme;
+  }
+}
+
+export async function getProfile(): Promise<Profile> {
+  noStore();
+  try {
+    const docRef = doc(firestore, 'profile', 'main');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data() as Profile;
+    }
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+  }
+  return {
+    name: 'Your Name',
+    title: 'Professional Title',
+    bio: 'Welcome to your portfolio. This is a brief bio that you can edit in the admin dashboard.',
+    location: 'City, Country',
+    email: 'youremail@example.com',
+    resumeUrl: '#',
+    avatarUrl: 'https://picsum.photos/seed/dev-profile/400/400',
+  };
+}
+
+export async function getProjects(options: { featured?: boolean } = {}): Promise<Project[]> {
+  noStore();
+  try {
+    const projectsRef = collection(firestore, "projects");
+    let q;
+    if (options.featured) {
+      q = query(projectsRef, where("featured", "==", true));
+    } else {
+      q = query(projectsRef);
+    }
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    return [];
+  }
+}
+
+export async function getProjectById(id: string): Promise<Project | null> {
+    noStore();
+    try {
+        const docRef = doc(firestore, 'projects', id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return { id: docSnap.id, ...docSnap.data() } as Project;
+        }
+        return null;
+    } catch (error) {
+        console.error(`Error fetching project with id ${id}:`, error);
+        return null;
+    }
+}
+
+
+export async function getSkills(): Promise<Skill[]> {
+  noStore();
+  try {
+    const docRef = doc(firestore, 'skills', 'main');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists() && docSnap.data().skills) {
+      return docSnap.data().skills as Skill[];
+    }
+  } catch (error) {
+    console.error("Error fetching skills:", error);
+  }
+  return [];
+}
+
+export async function getEducation(): Promise<Education[]> {
+  noStore();
+  try {
+    const docRef = doc(firestore, 'education', 'main');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists() && docSnap.data().entries) {
+      return docSnap.data().entries as Education[];
+    }
+  } catch (error) {
+    console.error("Error fetching education:", error);
+  }
+  return [];
+}
+
+export async function getDashboardStats(): Promise<DashboardStats> {
+  noStore();
+  try {
+    const [projectsSnap, skillsSnap, educationSnap, messagesSnap] = await Promise.all([
+      getDocs(collection(firestore, "projects")),
+      getDoc(doc(firestore, "skills", "main")),
+      getDoc(doc(firestore, "education", "main")),
+      getDocs(query(collection(firestore, "messages"), where("read", "==", false))),
+    ]);
+
+    const skills = skillsSnap.exists() ? (skillsSnap.data().skills?.length || 0) : 0;
+    const education = educationSnap.exists() ? (educationSnap.data().entries?.length || 0) : 0;
+    
+    return {
+      projects: projectsSnap.size,
+      skills: skills,
+      education: education,
+      messages: messagesSnap.size,
+    };
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+    return { projects: 0, skills: 0, education: 0, messages: 0 };
+  }
+}
+
+export async function getMessages(): Promise<Message[]> {
+  noStore();
+  try {
+    const messagesRef = collection(firestore, "messages");
+    const q = query(messagesRef, orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    return [];
+  }
+}
