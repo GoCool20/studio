@@ -197,7 +197,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
              <FormField
               control={form.control}
               name="resumeUrl"
-              render={({ field: { onChange, ...fieldProps } }) => (
+              render={({ field: { onChange, value, ...fieldProps } }) => (
                 <FormItem>
                   <FormLabel>Resume</FormLabel>
                   <FormControl>
@@ -220,7 +220,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
              <FormField
               control={form.control}
               name="avatarUrl"
-              render={({ field: { onChange, ...fieldProps } }) => (
+              render={({ field: { onChange, value, ...fieldProps } }) => (
                 <FormItem>
                   <FormLabel>Avatar</FormLabel>
                    <FormControl>
