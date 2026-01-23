@@ -1,0 +1,41 @@
+"use server";
+
+import { z } from "zod";
+import { doc, setDoc } from "firebase/firestore";
+import { firestore } from "@/lib/firebase";
+import { revalidatePath } from "next/cache";
+
+const profileSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  title: z.string().min(1, "Title is required"),
+  bio: z.string().min(1, "Bio is required"),
+  location: z.string().min(1, "Location is required"),
+  email: z.string().email("Invalid email address"),
+  resumeUrl: z.string().url("Invalid URL for resume"),
+  avatarUrl: z.string().url("Invalid URL for avatar").optional().or(z.literal('')),
+});
+
+export async function updateProfile(data: z.infer<typeof profileSchema>) {
+  const validatedFields = profileSchema.safeParse(data);
+
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    const profileRef = doc(firestore, "profile", "main");
+    await setDoc(profileRef, validatedFields.data, { merge: true });
+
+    revalidatePath("/admin/profile");
+    revalidatePath("/");
+    revalidatePath("/about");
+
+    return { success: true, message: "Profile updated successfully!" };
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    return { success: false, message: "An unexpected error occurred." };
+  }
+}
