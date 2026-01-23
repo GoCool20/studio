@@ -98,8 +98,8 @@ export default async function AboutPage() {
               </CardContent>
             </Card>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </div>
   );
 }
