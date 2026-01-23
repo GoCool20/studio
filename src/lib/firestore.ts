@@ -19,7 +19,14 @@ export async function getTheme(): Promise<Theme> {
     const docRef = doc(firestore, 'theme', 'main');
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      return { ...defaultTheme, ...docSnap.data() } as Theme;
+      const data = docSnap.data();
+      // Ensure default values are present if they are missing from Firestore
+      return {
+        ...defaultTheme,
+        ...data,
+        // Ensure nested objects/arrays have defaults
+        socialLinks: data.socialLinks || defaultTheme.socialLinks,
+      } as Theme;
     }
     return defaultTheme;
   } catch (error) {
@@ -47,6 +54,13 @@ export async function getProfile(): Promise<Profile> {
     email: 'youremail@example.com',
     resumeUrl: '',
     avatarUrl: '',
+    contactSubtitle: "Have a project in mind or want to discuss a potential collaboration? I'd love to hear from you.",
+    responseTime: "24 hours",
+    availability: "Available for remote work worldwide",
+    socialLinks: [
+      { id: '1', platform: 'linkedin', url: 'https://linkedin.com' },
+      { id: '2', platform: 'github', url: 'https://github.com' },
+    ]
   };
 }
 

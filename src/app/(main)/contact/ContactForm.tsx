@@ -9,7 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2 } from 'lucide-react';
+import { Loader2, SendHorizontal } from 'lucide-react';
 
 const initialState = {
   message: '',
@@ -21,7 +21,11 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" size="lg" className="w-full" disabled={pending}>
-      {pending ? <Loader2 className="animate-spin" /> : null}
+      {pending ? (
+        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+      ) : (
+        <SendHorizontal className="mr-2 h-5 w-5" />
+      )}
       Send Message
     </Button>
   );
@@ -49,7 +53,7 @@ export function ContactForm() {
   }, [state, toast]);
 
   return (
-    <Card>
+    <Card className="bg-card/50">
       <form ref={formRef} action={formAction}>
         <CardHeader>
           <CardTitle className="text-2xl">Send a Message</CardTitle>

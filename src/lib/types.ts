@@ -1,5 +1,11 @@
 import type { Timestamp } from "firebase/firestore";
 
+export type SocialLink = {
+  id: string;
+  platform: string;
+  url: string;
+};
+
 export type Profile = {
   name: string;
   title: string;
@@ -8,6 +14,10 @@ export type Profile = {
   email: string;
   resumeUrl: string;
   avatarUrl: string;
+  contactSubtitle?: string;
+  responseTime?: string;
+  availability?: string;
+  socialLinks?: SocialLink[];
 };
 
 export type Project = {

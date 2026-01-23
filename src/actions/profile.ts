@@ -4,6 +4,12 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 
+const socialLinkSchema = z.object({
+  id: z.string(),
+  platform: z.string().min(1, "Platform name is required"),
+  url: z.string().url("Invalid URL").or(z.literal('')),
+});
+
 const profileSchema = z.object({
   name: z.string().min(1, "Name is required"),
   title: z.string().min(1, "Title is required"),
@@ -12,6 +18,10 @@ const profileSchema = z.object({
   email: z.string().email("Invalid email address"),
   resumeUrl: z.string().url("Invalid URL for resume").or(z.literal('')),
   avatarUrl: z.string().url("Invalid URL for avatar").optional().or(z.literal('')),
+  contactSubtitle: z.string().optional(),
+  responseTime: z.string().optional(),
+  availability: z.string().optional(),
+  socialLinks: z.array(socialLinkSchema).optional(),
 });
 
 export async function updateProfile(data: z.infer<typeof profileSchema>) {
@@ -29,6 +39,7 @@ export async function updateProfile(data: z.infer<typeof profileSchema>) {
     revalidatePath("/admin/profile");
     revalidatePath("/");
     revalidatePath("/about");
+    revalidatePath("/contact");
 
     return { success: true, message: "Profile updated successfully!" };
   } catch (error) {
