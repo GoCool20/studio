@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    domains: ['placehold.co', 'images.unsplash.com', 'picsum.photos', 'firebasestorage.googleapis.com', 'res.cloudinary.com'],
     remotePatterns: [
       {
         protocol: 'https',
