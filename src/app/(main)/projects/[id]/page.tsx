@@ -51,8 +51,8 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="left-4 border-0 bg-background/50 text-foreground hover:bg-background/80" />
-          <CarouselNext className="right-4 border-0 bg-background/50 text-foreground hover:bg-background/80" />
+          <CarouselPrevious className="left-4 md:left-8 border-0 bg-background/50 text-foreground hover:bg-background/80" />
+          <CarouselNext className="right-4 md:right-8 border-0 bg-background/50 text-foreground hover:bg-background/80" />
         </Carousel>
       ) : (
         <div className="relative mb-12 h-96 w-full overflow-hidden rounded-lg shadow-soft-lg">
