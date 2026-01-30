@@ -32,6 +32,7 @@ export type Project = {
   featured: boolean;
   imageUrl: string;
   orderIndex: number;
+  gallery?: string[];
 };
 
 export type Skill = {

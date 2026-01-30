@@ -32,6 +32,12 @@ const projectSchema = z.object({
   githubUrl: z.string().url("Invalid GitHub URL").optional().or(z.literal('')),
   liveDemoUrl: z.string().url("Invalid live demo URL").optional().or(z.literal('')),
   imageUrl: z.string().url("Invalid image URL").optional().or(z.literal('')),
+  gallery: z.preprocess((val) => {
+    if (typeof val === 'string') {
+        return val.split(/,|\n/).map(s => s.trim()).filter(Boolean);
+    }
+    return val;
+  }, z.array(z.string().url("Invalid gallery image URL")).optional()),
   orderIndex: z.preprocess(
     (val) => (String(val).trim() === '' ? 0 : parseInt(String(val), 10)),
     z.number().int().nonnegative("Order index must be a non-negative number.")
@@ -61,6 +67,7 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
       githubUrl: initialData?.githubUrl || '',
       liveDemoUrl: initialData?.liveDemoUrl || '',
       imageUrl: initialData?.imageUrl || '',
+      gallery: initialData?.gallery?.join(',\n') || '',
       featured: initialData?.featured || false,
       orderIndex: initialData?.orderIndex ?? 0,
     },
@@ -174,10 +181,30 @@ export function ProjectForm({ initialData }: ProjectFormProps) {
               name="imageUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Project Image URL</FormLabel>
+                  <FormLabel>Project Thumbnail Image URL</FormLabel>
                   <FormControl>
                     <Input placeholder="https://example.com/image.png" {...field} value={field.value ?? ''} />
                   </FormControl>
+                  <FormDescription>This image will be used on the project list pages.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="gallery"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Gallery Image URLs</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter URLs separated by commas or new lines"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Add multiple image URLs, separated by commas or new lines.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
