@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -123,8 +122,8 @@ export function ProjectFilters({ allTech, projects }: ProjectFiltersProps) {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="hidden md:flex" />
-          <CarouselNext className="hidden md:flex" />
+          <CarouselPrevious />
+          <CarouselNext />
         </Carousel>
       ) : (
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
