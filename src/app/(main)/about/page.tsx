@@ -36,6 +36,7 @@ export default async function AboutPage() {
                 fill
                 className="object-cover"
                 data-ai-hint={profileImage.imageHint}
+                unoptimized
               />
             )}
           </div>

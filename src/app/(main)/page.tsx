@@ -45,6 +45,7 @@ async function HeroSection() {
               className="object-cover"
               data-ai-hint={profileImage.imageHint}
               priority
+              unoptimized
             />
           )}
         </div>
@@ -79,6 +80,7 @@ async function FeaturedProjects() {
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                       data-ai-hint="web app"
+                      unoptimized
                     />
                   </div>
                 </CardHeader>

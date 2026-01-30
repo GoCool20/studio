@@ -28,6 +28,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
           fill
           className="object-cover"
           data-ai-hint="web app"
+          unoptimized
         />
       </div>
 
