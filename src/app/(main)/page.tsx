@@ -132,6 +132,14 @@ async function FeaturedProjects() {
         </div>
       </div>
     </section>
+    
+     <div className="mt-6 flex flex-wrap justify-center gap-4 md:justify-start">
+            <Button asChild size="lg">
+              <Link href="/projects">
+                View Projects <ArrowRight />
+              </Link>
+            </Button>
+      </div>
   );
 }
 
